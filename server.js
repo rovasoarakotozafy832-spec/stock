@@ -133,7 +133,7 @@ app.use('/api/products', require('./backend/routes/products'));
 app.use(express.static(path.join(__dirname, 'build')));
 
 // fallback React (CORRIGÉ ICI)
-app.get('/*', (req, res) => {
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
