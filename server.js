@@ -130,11 +130,10 @@ app.use('/api/products', require('./backend/routes/products'));
 // =======================
 
 // servir le build React
-app.use(express.static(path.join(__dirname, 'build')));
+app.use(express.static(path.join(__dirname, 'frontend', 'build')));
 
-// fallback React (CORRIGÉ ICI)
 app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+  res.sendFile(path.join(__dirname, 'frontend', 'build', 'index.html'));
 });
 
 // =======================
