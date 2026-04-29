@@ -32,6 +32,27 @@ mongoose.connect(process.env.MONGO_URL)
   .catch(err => console.log('❌ Erreur MongoDB:', err));
 
 // =======================
+// SEED ADMIN AUTOMATIQUE
+// =======================
+mongoose.connection.once('open', async () => {
+  const existing = await User.findOne({ email: "admin@gmail.com" });
+
+  if (!existing) {
+    const hashedPassword = await bcrypt.hash("admin123", 10);
+
+    await User.create({
+      name: "Admin",
+      email: "admin@gmail.com",
+      password: hashedPassword
+    });
+
+    console.log("✅ Admin créé automatiquement");
+  } else {
+    console.log("ℹ️ Admin déjà existant");
+  }
+});
+
+// =======================
 // MODÈLE USER
 // =======================
 const UserSchema = new mongoose.Schema({
@@ -51,7 +72,9 @@ app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    const existingUser = await User.findOne({ email });
+    const emailClean = email.trim().toLowerCase();
+
+    const existingUser = await User.findOne({ email: emailClean });
     if (existingUser) {
       return res.status(400).json({ message: 'Email déjà utilisé' });
     }
@@ -60,7 +83,7 @@ app.post('/api/auth/register', async (req, res) => {
 
     const user = new User({
       name,
-      email,
+      email: emailClean,
       password: hashedPassword
     });
 
@@ -74,7 +97,7 @@ app.post('/api/auth/register', async (req, res) => {
 
     res.json({
       token,
-      user: { id: user._id, name, email }
+      user: { id: user._id, name, email: emailClean }
     });
 
   } catch (err) {
@@ -87,12 +110,16 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const emailClean = email.trim().toLowerCase();
+
+    const user = await User.findOne({ email: emailClean });
+
     if (!user) {
       return res.status(400).json({ message: 'Email ou mot de passe incorrect' });
     }
 
     const isValid = await bcrypt.compare(password, user.password);
+
     if (!isValid) {
       return res.status(400).json({ message: 'Email ou mot de passe incorrect' });
     }
@@ -105,7 +132,7 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.json({
       token,
-      user: { id: user._id, name: user.name, email }
+      user: { id: user._id, name: user.name, email: user.email }
     });
 
   } catch (err) {
@@ -126,13 +153,13 @@ app.get('/api', (req, res) => {
 app.use('/api/products', require('./backend/routes/products'));
 
 // =======================
-// FRONTEND REACT (IMPORTANT)
+// FRONTEND REACT
 // =======================
 
-// servir le build React
+// servir React build
 app.use(express.static(path.join(__dirname, 'build')));
 
-// fallback React (CORRIGÉ ICI)
+// fallback React (safe)
 app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
