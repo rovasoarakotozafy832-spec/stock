@@ -17,9 +17,15 @@ const PORT = process.env.PORT || 5000;
 // =======================
 // CONNEXION MONGODB
 // =======================
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ Connecté à MongoDB'))
-  .catch(err => console.log('❌ Erreur MongoDB:', err));
+console.log("MONGO_URL =", process.env.MONGO_URI);
+console.log("JWT_SECRET =", process.env.JWT_SECRET);
+if (!process.env.MONGO_URL) {
+  console.error("❌ MONGO_URL manquant !");
+} else {
+  mongoose.connect(process.env.MONGO_URL)
+    .then(() => console.log('✅ Connecté à MongoDB'))
+    .catch(err => console.log('❌ Erreur MongoDB:', err));
+}
 
 // =======================
 // MODÈLE USER
