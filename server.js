@@ -1,3 +1,5 @@
+console.log("ALL ENV KEYS:", Object.keys(process.env));
+console.log("RAW MONGO_URL:", JSON.stringify(process.env.MONGO_URL));
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
