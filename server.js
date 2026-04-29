@@ -3,30 +3,40 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const PORT = process.env.PORT || 5000;
-
-app.listen(PORT, () => {
-  console.log(`Server running on ${PORT}`);
-});
+require('dotenv').config();
 
 const app = express();
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Connexion MongoDB
-mongoose.connect('mongodb://localhost:27017/gestionstock')
+// PORT Railway
+const PORT = process.env.PORT || 5000;
+
+// =======================
+// CONNEXION MONGODB
+// =======================
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ Connecté à MongoDB'))
   .catch(err => console.log('❌ Erreur MongoDB:', err));
 
-// Modèle Utilisateur
+// =======================
+// MODÈLE USER
+// =======================
 const UserSchema = new mongoose.Schema({
   name: String,
   email: { type: String, unique: true },
   password: String
 });
+
 const User = mongoose.model('User', UserSchema);
 
-// Inscription (avec cryptage + token)
+// =======================
+// ROUTES AUTH
+// =======================
+
+// INSCRIPTION
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -37,49 +47,75 @@ app.post('/api/auth/register', async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ name, email, password: hashedPassword });
+
+    const user = new User({
+      name,
+      email,
+      password: hashedPassword
+    });
+
     await user.save();
 
     const token = jwt.sign(
       { id: user._id, email: user.email },
-      'secret123',
+      process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    res.json({ token, user: { id: user._id, name, email } });
+    res.json({
+      token,
+      user: { id: user._id, name, email }
+    });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Connexion (avec vérification + token)
+// CONNEXION
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Email ou mot de passe incorrect' });
+    if (!user) {
+      return res.status(400).json({ message: 'Email ou mot de passe incorrect' });
+    }
 
     const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) return res.status(400).json({ message: 'Email ou mot de passe incorrect' });
+    if (!isValid) {
+      return res.status(400).json({ message: 'Email ou mot de passe incorrect' });
+    }
 
     const token = jwt.sign(
       { id: user._id, email: user.email },
-      'secret123',
+      process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    res.json({ token, user: { id: user._id, name: user.name, email } });
+    res.json({
+      token,
+      user: { id: user._id, name: user.name, email }
+    });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
+// =======================
+// ROUTES TEST
+// =======================
 app.get('/', (req, res) => {
   res.json({ message: 'API Gestion de Stock fonctionne !' });
 });
 
-app.listen(5000, () => {
-  console.log('🚀 Serveur sur http://localhost:5000');
-});
+// ROUTES PRODUITS
 app.use('/api/products', require('./routes/products'));
+
+// =======================
+// START SERVER (TOUJOURS DERNIER)
+// =======================
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
