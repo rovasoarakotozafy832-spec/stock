@@ -121,6 +121,16 @@ app.get('/', (req, res) => {
 // ROUTES PRODUITS
 app.use('/api/products', require('./backend/routes/products'));
 
+const path = require('path');
+
+// servir le frontend React
+app.use(express.static(path.join(__dirname, 'build')));
+
+// toutes les routes → React
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+
 // =======================
 // START SERVER (TOUJOURS DERNIER)
 // =======================
