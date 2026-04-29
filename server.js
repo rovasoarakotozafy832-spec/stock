@@ -1,5 +1,5 @@
 console.log("ALL ENV KEYS:", Object.keys(process.env));
-console.log("RAW DB_URL:", JSON.stringify(process.env.MONGO_URL));
+console.log("RAW MONGO_URL:", JSON.stringify(process.env.MONGO_URL));
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -19,12 +19,12 @@ const PORT = process.env.PORT || 5000;
 // =======================
 // CONNEXION MONGODB
 // =======================
-console.log("DB_URL =", process.env.DB_URL);
+console.log("MONGO_URL =", process.env.MONGO_URL);
 console.log("JWT_SECRET =", process.env.JWT_SECRET);
-if (!process.env.DB_URL) {
+if (!process.env.MONGO_URL) {
   console.error("❌ MONGO_URL manquant !");
 } else {
-  mongoose.connect(process.env.DB_URL)
+  mongoose.connect(process.env.MONGO_URL)
     .then(() => console.log('✅ Connecté à MongoDB'))
     .catch(err => console.log('❌ Erreur MongoDB:', err));
 }
