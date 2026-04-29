@@ -111,7 +111,7 @@ app.get('/', (req, res) => {
 });
 
 // ROUTES PRODUITS
-app.use('/api/products', require('./routes/products'));
+app.use('/api/products', require('./backend/routes/products'));
 
 // =======================
 // START SERVER (TOUJOURS DERNIER)
